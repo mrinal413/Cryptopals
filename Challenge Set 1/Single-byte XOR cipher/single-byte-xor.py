@@ -3,7 +3,7 @@ def xor(a, b):
 
 def single_byte_xor(ciphertext):
     best = None
-    for i in range(2**8): # for every possible ascii chars
+    for i in range(256): # for every possible ascii chars
         candidate_key = i.to_bytes(1, byteorder='big')
         keystream = candidate_key*len(ciphertext)
         candidate_message = xor(ciphertext, keystream)
