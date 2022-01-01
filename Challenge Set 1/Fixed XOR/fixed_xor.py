@@ -6,3 +6,4 @@ b = bytes.fromhex('686974207468652062756c6c277320657965')
 
 res = xor(a,b)
 print(res)
+print(res.hex())
