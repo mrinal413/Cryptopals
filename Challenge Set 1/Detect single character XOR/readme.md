@@ -1,0 +1,1 @@
+This one was the same as the previous challenge except here we had to store the 60 encrypted lines in a text files and had to read each of those lines from the file one at a time and check which line decrypted a valid message.
