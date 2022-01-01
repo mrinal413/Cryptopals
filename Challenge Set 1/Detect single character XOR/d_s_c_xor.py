@@ -18,10 +18,10 @@ def single_byte_xor(ciphertext):
     else:
         raise InvalidMessageException('best candidate message is: %s' % best['message'])
 
-with open('chall4.txt') as data_file:
+with open('chall4.txt') as file:
     ciphertext_list = [
         bytes.fromhex(line.strip())
-        for line in data_file
+        for line in file
     ]
 
 char_list = list(range(97, 122)) + [32] 
