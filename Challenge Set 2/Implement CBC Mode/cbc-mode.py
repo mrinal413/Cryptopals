@@ -25,17 +25,13 @@ def aes_in_ecb_mode(ciphertext, key, encrypt):
     else:
         return cipher.decrypt(ciphertext)
 
-def cbc_mode(byte_string: bytes, 
-             key: bytes, 
-             initialization_vector: bytes, 
-             encrypt: bool = True) -> bytes:
+def cbc_mode(byte_string, key, initialization_vector , encrypt):
     if encrypt: 
         previous_block = initialization_vector
         cipher_text = b''
         for i in range(0, len(byte_string), len(key)):
-            plain_text = fixed_xor(pkcs7_padding(byte_string[i: i + len(key)], len(key)),
-                                   previous_block)
-            previous_block = aes_in_ecb_mode(plain_text, key, encrypt=True)
+            plain_text = fixed_xor(pkcs7_padding(byte_string[i: i + len(key)], len(key)), previous_block)
+            previous_block = aes_in_ecb_mode(plain_text, key, True)
             cipher_text += previous_block
         return cipher_text
     else:
@@ -43,10 +39,10 @@ def cbc_mode(byte_string: bytes,
         plain_text = b''
         for i in range(0, len(byte_string), len(key)):
             cipher_text = byte_string[i: i + len(key)]
-            plain_text += fixed_xor(aes_in_ecb_mode(cipher_text, key, encrypt=False), previous_block)
+            plain_text += fixed_xor(aes_in_ecb_mode(cipher_text, key, False), previous_block)
             previous_block = cipher_text
         return plain_text
 
 byte_string = b''.join([a2b_base64(line.strip()) for line in open("chall10.txt").readlines()])
-for line in bytes_to_str(cbc_mode(byte_string, b'YELLOW SUBMARINE', b'\x00'*16, encrypt=False)).split("\n")[:10]:
+for line in bytes_to_str(cbc_mode(byte_string, b'YELLOW SUBMARINE', b'\x00'*16, False)).split("\n")[:10]:
     print(line)
