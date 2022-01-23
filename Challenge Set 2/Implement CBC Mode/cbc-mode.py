@@ -5,7 +5,7 @@ from Crypto.Cipher import AES
 def fixed_xor(a, b):
     return bytes([x^y for (x,y) in zip(a, b)])
 
-def pkcs7_padding(s, p):
+def pkcs7_padding(s, p): #adds required padding to a given text 
     b = p-(len(s))
     nstr=""
     for i in range(p):
@@ -15,34 +15,22 @@ def pkcs7_padding(s, p):
             nstr = nstr + chr(92) +'x' + str(b).zfill(2)
     return nstr
  
-def bytes_to_str(byte_list: bytes) -> str:
+def bytes_to_str(byte_list: bytes): # To convert the decrypted text in a proper readable string format
     return "".join(filter(lambda x: x in string.printable, "".join(map(chr, byte_list))))
 
-def aes_in_ecb_mode(ciphertext, key, encrypt):
+def AES_ECB_DECRYPT(key, ciphertext):
     cipher = AES.new(key, AES.MODE_ECB)
-    if encrypt:
-        return cipher.encrypt(ciphertext)
-    else:
-        return cipher.decrypt(ciphertext)
+    return cipher.decrypt(ciphertext)
 
-def cbc_mode(byte_string, key, initialization_vector , encrypt):
-    if encrypt: 
-        previous_block = initialization_vector
-        cipher_text = b''
-        for i in range(0, len(byte_string), len(key)):
-            plain_text = fixed_xor(pkcs7_padding(byte_string[i: i + len(key)], len(key)), previous_block)
-            previous_block = aes_in_ecb_mode(plain_text, key, True)
-            cipher_text += previous_block
-        return cipher_text
-    else:
-        previous_block = initialization_vector
-        plain_text = b''
-        for i in range(0, len(byte_string), len(key)):
-            cipher_text = byte_string[i: i + len(key)]
-            plain_text += fixed_xor(aes_in_ecb_mode(cipher_text, key, False), previous_block)
-            previous_block = cipher_text
-        return plain_text
+def cbc_mode(byte_string, key, IV):
+    previous_block = IV
+    plain_text = b''
+    for i in range(0, len(byte_string), len(key)):
+        cipher_text = byte_string[i: i + len(key)]
+        plain_text += fixed_xor(AES_ECB_DECRYPT(cipher_text, key), previous_block)
+        previous_block = cipher_text
+    return plain_text
 
 byte_string = b''.join([a2b_base64(line.strip()) for line in open("chall10.txt").readlines()])
-for line in bytes_to_str(cbc_mode(byte_string, b'YELLOW SUBMARINE', b'\x00'*16, False)).split("\n")[:10]:
+for line in bytes_to_str(cbc_mode(byte_string, b'YELLOW SUBMARINE', b'\x00'*16)).split("\n")[:10]:
     print(line)
