@@ -1,10 +1,13 @@
+def xor(a, b):
+    return bytes([x^y for (x,y) in zip(a, b)])
+
+
 plaintext = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
 key = b"ICE"
 
 keystream = key*((len(plaintext)//3)+1)
 
-ciphertext = bytes([x^y for (x,y) in zip(plaintext, keystream)])
-
+ciphertext = xor(plaintext,keystream)
 hexadecimal_string = ciphertext.hex()
 
 pos = len(plaintext)
