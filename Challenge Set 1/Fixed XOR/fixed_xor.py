@@ -1,9 +1,9 @@
-def xor(a, b):
-    return bytes([x^y for (x,y) in zip(a, b)])
+def fixed_xor(a,b):
+    return (bytes([x^y for (x,y) in zip(a,b)])).hex()
 
-a = bytes.fromhex('1c0111001f010100061a024b53535009181c')
-b = bytes.fromhex('686974207468652062756c6c277320657965')
+a = input("Enter hex string: ")
+b = input("Enter hex string: ")
 
-res = xor(a,b)
+res = fixed_xor(bytes.fromhex(a),bytes.fromhex(b))
+
 print(res)
-print(res.hex())
