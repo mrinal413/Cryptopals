@@ -1,11 +1,10 @@
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, pad, unpad, xor
 from os import urandom
 
-key = urandom(16)
-iv = urandom(16)
+def fixed_xor(a, b):
+    return bytes([x^y for (x,y) in zip(a, b)])
 
-
-def pkcs7_padding(s, p):
+def pkcs7_padding(s, p): #adds required padding to a given text 
     b = p-(len(s))
     nstr=""
     for i in range(p):
@@ -16,43 +15,34 @@ def pkcs7_padding(s, p):
     return nstr
 
 
-def CBC_encrypt(payload):
-    obj = AES.new(key, AES.MODE_CBC, iv)
-    for i in range(len(payload)):
-        if payload[i] == ";" or payload[i] == "=":
-            payload = payload.replace(payload[i], "?")
-    str1 = "comment1=cooking%20MCs;userdata=" + payload + ";comment2=%20like%20a%20pound%20of%20bacon"
-    str1 = pkcs7_padding(str1, 16)
-    ciphertext = obj.encrypt(str1)
-    return ciphertext
+def cbc_mode(text, key, IV, encrypt):
+    if encrypt:
+        en = AES.new(key, AES.mode_CBC, iv)
+        text = text.replace(';','X').replace('=','X')
+        new_text = "comment1=cooking%20MCs;userdata=" + text + ";comment2=%20like%20a%20pound%20of%20bacon"
+        new_text = pkcs7_padding(new_text, 16)
+        ciphertext = en.encrypt(new_text)
+        return ciphertext
+    else: #decrypt
+        d = AES.new(key, AES.mode_CBC, iv)
+        plaintext = d.decrypt(text)
+        return plaintext
 
+string = ";admin=true;"
+key = urandom(16)
+iv = urandom(16)
 
-def CBC_decrypt(ciphertext):
-    obj1 = AES.new(key,AES.MODE_CBC,iv)
-    plaintext = obj1.decrypt(ciphertext)
-    if ";admin=true;" in plaintext:
-        print("True")
-    else:
-        print("FALSE")
+ct = cbc_mode(string, key, iv, True)
 
+c0 = chr(ord(ct[0])^ord('X')^ord(';'))
+c6 = chr(ord(ct[6])^ord('X')^ord('='))
+c11 = chr(ord(ct[11])^ord('X')^ord(';'))
 
-# Exploit using the Bit Flipping Attack!
-cipher_list = []
-payload = ";admin=true;"
-ciphertext = CBC_encrypt(payload)
+ct = c0 + ct[1:6]+c6+ct[7:11]+c11+ct[12:]
 
-i = 0
-while i*16 <= len(ciphertext):
-    cipher_list.append(ciphertext[i*16: 16 + (i*16)])
-    i += 1
-cipher_list.remove(cipher_list[6])
+pt = cbc_mode(ct,key,iv,False)
 
-attack_on_block = cipher_list[1]
-list1 = list(attack_on_block)
-list1[0] = chr(ord(list1[0]) ^ ord("?") ^ ord(";"))
-list1[6] = chr(ord(list1[6]) ^ ord("?") ^ ord("="))
-list1[11] = chr(ord(list1[11]) ^ ord("?") ^ ord(";"))
-cipher_list[1] = ''.join(list1)
-ciphertext = ''.join(cipher_list)
-
-CBC_decrypt(ciphertext)
+if ";admin=true;" in pt:
+    print("True")
+else:
+    print("FALSE")
